@@ -31103,6 +31103,9 @@ var PersonalDetails = function () {
             $('#residence').replaceWith($('<label/>').append($('<strong/>', { id: 'country' })));
             $('#country').text(get_settings.country);
         }
+        if (['Mr', 'Ms'].includes(get_settings_data.salutation)) {
+            CommonFunctions.getElementById('row_salutation').setVisibility(0);
+        }
         if (is_virtual) {
             CommonFunctions.getElementById('row_date_of_birth').setVisibility(0);
         }
