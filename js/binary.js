@@ -203,7 +203,7 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/js/";
+/******/ 	__webpack_require__.p = "/binary-static/js/";
 /******/
 /******/ 	// on error function for async loading
 /******/ 	__webpack_require__.oe = function(err) { console.error(err); throw err; };
@@ -31102,6 +31102,9 @@ var PersonalDetails = function () {
         if (get_settings.country) {
             $('#residence').replaceWith($('<label/>').append($('<strong/>', { id: 'country' })));
             $('#country').text(get_settings.country);
+        }
+        if (['Mr', 'Ms'].includes(get_settings_data.salutation)) {
+            CommonFunctions.getElementById('row_salutation').setVisibility(0);
         }
         if (is_virtual) {
             CommonFunctions.getElementById('row_date_of_birth').setVisibility(0);
