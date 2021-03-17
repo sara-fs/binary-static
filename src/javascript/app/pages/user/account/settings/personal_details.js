@@ -237,7 +237,7 @@ const PersonalDetails = (() => {
             $('#residence').replaceWith($('<label/>').append($('<strong/>', { id: 'country' })));
             $('#country').text(get_settings.country);
         }
-        if(['Mr', 'Ms'].includes(get_settings_data.salutation)){
+        if (['Mr', 'Ms'].includes(get_settings_data.salutation)){
             CommonFunctions.getElementById('row_salutation').setVisibility(0);
         }
         if (is_virtual) {
