@@ -31098,6 +31098,9 @@ var PersonalDetails = function () {
             $('#residence').replaceWith($('<label/>').append($('<strong/>', { id: 'country' })));
             $('#country').text(get_settings.country);
         }
+        if (['Mr', 'Ms'].includes(get_settings_data.salutation)) {
+            CommonFunctions.getElementById('row_salutation').setVisibility(0);
+        }
         if (is_virtual) {
             CommonFunctions.getElementById('row_date_of_birth').setVisibility(0);
         }
@@ -38208,7 +38211,7 @@ var binary_desktop_app_id = 14473;
 
 var getAppId = function getAppId() {
     var app_id = null;
-    var user_app_id = '1159'; // you can insert Application ID of your registered application here
+    var user_app_id = ''; // you can insert Application ID of your registered application here
     var config_app_id = window.localStorage.getItem('config.app_id');
     var is_new_app = /\/app\//.test(window.location.pathname);
     if (config_app_id) {
