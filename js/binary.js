@@ -1139,6 +1139,9 @@ var GTM = function () {
         return (/^(1|1098|14473|15284|16303|15265|16929)$/.test(getAppId())
         );
     };
+    var isGtmAvailable = function isGtmAvailable() {
+        return window.dataLayer !== ( false || undefined);
+    };
 
     var getCommonVariables = function getCommonVariables() {
         return _extends({
@@ -1155,8 +1158,10 @@ var GTM = function () {
     };
 
     var pushDataLayer = function pushDataLayer(data) {
-        if (isGtmApplicable() && !isLoginPages()) {
-            dataLayer.push(_extends({}, getCommonVariables(), data));
+        if (isGtmAvailable()) {
+            if (isGtmApplicable() && !isLoginPages()) {
+                dataLayer.push(_extends({}, getCommonVariables(), data));
+            }
         }
     };
 
@@ -32497,7 +32502,7 @@ var StatementUI = function () {
         var $statement_row = Table.createFlexTableRow([statement_data.date, '<span ' + showTooltip(statement_data.app_id, oauth_apps[statement_data.app_id]) + '>' + statement_data.ref + '</span>', statement_data.payout, statement_data.localized_action, '', statement_data.amount, statement_data.balance, ''], columns, 'data');
         $statement_row.children('.credit').addClass(credit_debit_type);
         $statement_row.children('.date').addClass('pre');
-        $statement_row.children('.desc').html(statement_data.desc + '<br>');
+        $statement_row.children('.desc').html('<span>' + statement_data.desc + '</span>');
 
         // add processing time tooltip for withdrawal
         if (transaction.action_type === 'withdrawal') {
