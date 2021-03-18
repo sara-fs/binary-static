@@ -189,8 +189,9 @@ const PersonalDetails = (() => {
             editable_fields[key] = (get_settings[key] !== null ? get_settings[key] : '');
 
             const should_update_value = /select|text/i.test(element_key.type);
-           if( element_id !== 'salutation' || !get_settings_data.salutation )
-            CommonFunctions.getElementById(`row_${element_id}`).setVisibility(1)
+            if( element_id !== 'salutation' || !get_settings_data.salutation ){
+                CommonFunctions.getElementById(`row_${element_id}`).setVisibility(1)
+            }
            
             if (element_key.type === 'checkbox') {
                 element_key.checked = !!get_settings[key];
