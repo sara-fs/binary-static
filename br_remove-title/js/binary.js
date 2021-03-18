@@ -10738,10 +10738,11 @@ var Clock = function () {
         }
     };
 
-    var showLocalTimeOnHover = function showLocalTimeOnHover(selector) {
+    var showLocalTimeOnHover = function showLocalTimeOnHover(selector, is_table) {
         document.querySelectorAll(selector || '.date').forEach(function (el) {
             var gmt_time_str = el.textContent.replace('\n', ' ');
-            var local_time = moment.utc(gmt_time_str, 'YYYY-MM-DD HH:mm:ss').local();
+
+            var local_time = !is_table ? moment.utc(gmt_time_str, 'YYYY-MM-DD HH:mm:ss').local() : moment.utc(gmt_time_str, 'DD MMM YYYY HH:mm:ss').local();
             if (local_time.isValid()) {
                 el.setAttribute('data-balloon', local_time.format('YYYY-MM-DD HH:mm:ss Z'));
             }
@@ -28609,9 +28610,10 @@ var PortfolioInit = function () {
     };
 
     var createPortfolioRow = function createPortfolioRow(data, is_first) {
+        var exclude_currency = true;
         var new_class = is_first ? '' : 'new';
         var $div = $('<div/>');
-        $div.append($('<tr/>', { class: 'tr-first ' + new_class + ' ' + data.contract_id, id: data.contract_id }).append($('<td/>', { class: 'ref' }).append($('<span ' + GetAppDetails.showTooltip(data.app_id, oauth_apps[data.app_id]) + ' data-balloon-position="right">' + data.transaction_id + '</span>'))).append($('<td/>', { class: 'payout' }).append($('<strong/>', { html: +data.payout ? formatMoney(data.currency, data.payout) : '-' }))).append($('<td/>', { class: 'details', text: data.longcode })).append($('<td/>', { class: 'purchase' }).append($('<strong/>', { html: formatMoney(data.currency, data.buy_price) }))).append($('<td/>', { class: 'indicative' }).append($('<strong/>', { class: 'indicative_price', text: '--.--' }))).append($('<td/>', { class: 'button' }).append($('<button/>', { class: 'button open_contract_details nowrap', contract_id: data.contract_id, text: localize('View') })))).append($('<tr/>', { class: 'tr-desc ' + new_class + ' ' + data.contract_id }).append($('<td/>', { colspan: '6', text: data.longcode })));
+        $div.append($('<tr/>', { class: 'tr-first ' + new_class + ' ' + data.contract_id, id: data.contract_id }).append($('<td/>', { class: 'contract', text: data.longcode })).append($('<td/>', { class: 'ref' }).append($('<span ' + GetAppDetails.showTooltip(data.app_id, oauth_apps[data.app_id]) + ' data-balloon-position="right">' + data.transaction_id + '</span>'))).append($('<td/>', { class: 'currency', text: data.currency })).append($('<td/>', { class: 'purchase' }).append($('<strong/>', { html: formatMoney(data.currency, data.buy_price, exclude_currency) }))).append($('<td/>', { class: 'payout' }).append($('<strong/>', { html: +data.payout ? formatMoney(data.currency, data.payout, exclude_currency) : '-' }))).append($('<td/>', { class: 'indicative' }).append($('<strong/>', { class: 'indicative_price', text: '--.--' }))).append($('<td/>', { class: 'button' }).append($('<button/>', { class: 'button open_contract_details nowrap', contract_id: data.contract_id, text: localize('View') })))).append($('<tr/>', { class: 'tr-desc ' + new_class + ' ' + data.contract_id }).append($('<td/>', { colspan: '6', text: data.longcode })));
 
         $('#portfolio-body').prepend($div.html());
     };
@@ -28704,6 +28706,7 @@ var PortfolioInit = function () {
         var old_indicative = values[proposal.contract_id].indicative || 0.00;
         values[proposal.contract_id].indicative = proposal.bid_price;
 
+        var exclude_currency = true;
         var status_class = '';
         var no_resale_html = '';
         if (+proposal.is_sold === 1) {
@@ -28718,7 +28721,7 @@ var PortfolioInit = function () {
                 }
                 $td.removeClass('no_resale');
             }
-            $td.html($('<strong/>', { class: 'indicative_price ' + status_class, html: formatMoney(proposal.currency, values[proposal.contract_id].indicative) }).append(no_resale_html));
+            $td.html($('<strong/>', { class: 'indicative_price ' + status_class, html: formatMoney(proposal.currency, values[proposal.contract_id].indicative, exclude_currency) }).append(no_resale_html));
         }
 
         updateFooter();
@@ -28743,8 +28746,9 @@ var PortfolioInit = function () {
     };
 
     var updateFooter = function updateFooter() {
-        $('#cost-of-open-positions').html(formatMoney(currency, Portfolio.getSumPurchase(values)));
-        $('#value-of-open-positions').html(formatMoney(currency, Portfolio.getIndicativeSum(values)));
+        var exclude_currency = true;
+        $('#cost-of-open-positions').html(formatMoney(currency, Portfolio.getSumPurchase(values), exclude_currency));
+        $('#value-of-open-positions').html(formatMoney(currency, Portfolio.getIndicativeSum(values), exclude_currency));
     };
 
     var errorMessage = function errorMessage(msg) {
@@ -28991,7 +28995,8 @@ var ProfitTableInit = function () {
 
         BinarySocket.send(req).then(function (response) {
             profitTableHandler(response);
-            showLocalTimeOnHover('td.buy-date,td.sell-date');
+            var tableTimeTooltip = true;
+            showLocalTimeOnHover('td.buy-time,td.sell-time', tableTimeTooltip);
             $('.barspinner').setVisibility(0);
         });
     };
@@ -29052,11 +29057,11 @@ var ProfitTable = function () {
         var sell_price = parseFloat(transaction.sell_price);
 
         return {
-            buyDate: buy_moment.format('YYYY-MM-DD') + '\n' + buy_moment.format('HH:mm:ss') + ' GMT',
+            buyDate: buy_moment.format('DD MMM YYYY') + '\n' + buy_moment.format('HH:mm:ss') + ' GMT',
             ref: transaction.transaction_id,
             payout: +transaction.payout ? formatMoney(currency, parseFloat(transaction.payout), true) : '-',
             buyPrice: formatMoney(currency, buy_price, true),
-            sellDate: sell_moment.format('YYYY-MM-DD') + '\n' + sell_moment.format('HH:mm:ss') + ' GMT',
+            sellDate: sell_moment.format('DD MMM YYYY') + '\n' + sell_moment.format('HH:mm:ss') + ' GMT',
             sellPrice: formatMoney(currency, sell_price, true),
             pl: formatMoney(currency, Number(sell_price - buy_price), true),
             desc: transaction.longcode,
@@ -29099,14 +29104,12 @@ var ProfitTableUI = function () {
     var currency = void 0;
 
     var profit_table_id = 'profit-table';
-    var cols = ['buy-date', 'ref', 'payout', 'contract', 'buy-price', 'sell-date', 'sell-price', 'pl', 'details'];
+    var cols = ['contract', 'ref', 'currency', 'buy-time', 'buy-price', 'sell-time', 'sell-price', 'pl', 'details'];
 
     var createEmptyTable = function createEmptyTable() {
-        var header = [localize('Date'), localize('Ref.'), localize('Potential Payout'), localize('Contract'), localize('Purchase Price'), localize('Sale Date'), localize('Sale Price'), localize('Profit/Loss'), localize('Details')];
+        var header = [localize('Contract details'), localize('Ref. ID'), localize('Currency'), localize('Buy time'), localize('Buy price'), localize('Sell time'), localize('Sell price'), localize('Profit/Loss'), localize('Details')];
 
         currency = Client.get('currency');
-
-        header[7] += currency ? ' (' + Currency.getCurrencyDisplayCode(currency) + ')' : '';
 
         var footer = [localize('Total Profit/Loss'), '', '', '', '', '', '', '', ''];
 
@@ -29139,13 +29142,13 @@ var ProfitTableUI = function () {
         var profit_table_data = ProfitTable.getProfitTabletData(transaction);
         var pl_type = Number(transaction.sell_price - transaction.buy_price) >= 0 ? 'profit' : 'loss';
 
-        var data = [profit_table_data.buyDate, '<span ' + showTooltip(profit_table_data.app_id, oauth_apps[profit_table_data.app_id]) + '>' + profit_table_data.ref + '</span>', /binaryico/i.test(profit_table_data.shortcode) ? '-' : profit_table_data.payout, // TODO: remove ico exception when all ico contracts are removed
-        '', profit_table_data.buyPrice, profit_table_data.sellDate, profit_table_data.sellPrice, profit_table_data.pl, ''];
+        var data = ['', '<span ' + showTooltip(profit_table_data.app_id, oauth_apps[profit_table_data.app_id]) + '>' + profit_table_data.ref + '</span>', currency, profit_table_data.buyDate, profit_table_data.buyPrice, profit_table_data.sellDate, profit_table_data.sellPrice, profit_table_data.pl, ''];
         var $row = Table.createFlexTableRow(data, cols, 'data');
 
         $row.children('.pl').addClass(pl_type);
         $row.children('.contract').html(profit_table_data.desc + '<br>');
-        $row.children('.buy-date, .sell-date').each(function () {
+        $row.children('.contract').css('width', '200px');
+        $row.children('.buy-time, .sell-time').each(function () {
             $(this).wrapInner('<div class="new-width"></div>');
         });
 
@@ -30875,7 +30878,7 @@ var PersonalDetails = function () {
     var form_id = '#frmPersonalDetails';
     var real_acc_elements = '.RealAcc';
     var real_acc_auth_elements = '.RealAccAuth';
-    var name_fields = ['salutation', 'first_name', 'last_name'];
+    var name_fields = ['first_name', 'last_name'];
 
     var is_for_new_account = false;
 
@@ -30941,13 +30944,13 @@ var PersonalDetails = function () {
      *
      * @param get_settings to prepopulate some of the values.
      */
+
     var displayChangeableFields = function displayChangeableFields(get_settings) {
         get_settings.immutable_fields.forEach(function (field) {
             CommonFunctions.getElementById('row_' + field).setVisibility(0);
             CommonFunctions.getElementById('row_lbl_' + field).setVisibility(1);
         });
 
-        // if salutation is missing, we want to show first and last name label but salutation selectable separately
         name_fields.forEach(function (field) {
             if (get_settings.immutable_fields.includes(field)) {
                 CommonFunctions.getElementById('row_name').setVisibility(1);
@@ -31045,7 +31048,6 @@ var PersonalDetails = function () {
             // If field is immutable and value was set by client, show label instead of input
             var has_label = get_settings.immutable_fields.includes(key);
             var should_show_label = has_label && get_settings[key];
-
             var element_id = '' + (should_show_label ? 'lbl_' : '') + key;
             var element_key = document.getElementById(element_id);
             if (!element_key) return;
@@ -31053,7 +31055,10 @@ var PersonalDetails = function () {
             editable_fields[key] = get_settings[key] !== null ? get_settings[key] : '';
 
             var should_update_value = /select|text/i.test(element_key.type);
-            CommonFunctions.getElementById('row_' + element_id).setVisibility(1);
+            if (element_id !== 'salutation' || !get_settings_data.salutation) {
+                CommonFunctions.getElementById('row_' + element_id).setVisibility(1);
+            }
+
             if (element_key.type === 'checkbox') {
                 element_key.checked = !!get_settings[key];
             } else if (!should_update_value) {
@@ -31103,9 +31108,7 @@ var PersonalDetails = function () {
             $('#residence').replaceWith($('<label/>').append($('<strong/>', { id: 'country' })));
             $('#country').text(get_settings.country);
         }
-        if (['Mr', 'Ms'].includes(get_settings_data.salutation)) {
-            CommonFunctions.getElementById('row_salutation').setVisibility(0);
-        }
+
         if (is_virtual) {
             CommonFunctions.getElementById('row_date_of_birth').setVisibility(0);
         }
@@ -32209,7 +32212,9 @@ var StatementInit = function () {
                 //     .on('click', () => { StatementUI.exportCSV(); });
             }
         }
-        showLocalTimeOnHover('td.date');
+
+        var tableTimeTooltip = true;
+        showLocalTimeOnHover('td.transaction-time', tableTimeTooltip);
     };
 
     var loadStatementChunkWhenScroll = function loadStatementChunkWhenScroll() {
@@ -32390,7 +32395,7 @@ var Statement = function () {
     var getStatementData = function getStatementData(statement, currency) {
         var date_obj = new Date(statement.transaction_time * 1000);
         var moment_obj = moment.utc(date_obj);
-        var date_str = moment_obj.format('YYYY-MM-DD');
+        var date_str = moment_obj.format('DD MMM YYYY');
         var time_str = moment_obj.format('HH:mm:ss') + ' GMT';
         var payout = parseFloat(statement.payout);
         var amount = parseFloat(statement.amount);
@@ -32468,14 +32473,10 @@ var StatementUI = function () {
     var oauth_apps = {};
 
     var table_id = 'statement-table';
-    var columns = ['date', 'ref', 'payout', 'act', 'desc', 'credit', 'bal', 'details'];
+    var columns = ['contract', 'ref', 'currency', 'transaction-time', 'transaction', 'credit', 'bal', 'details'];
 
     var createEmptyStatementTable = function createEmptyStatementTable() {
-        var header = [localize('Date'), localize('Ref.'), localize('Potential Payout'), localize('Action'), localize('Description'), localize('Credit/Debit'), localize('Balance'), localize('Details')];
-
-        var currency = Client.get('currency');
-
-        header[6] += currency ? ' (' + Currency.getCurrencyDisplayCode(currency) + ')' : '';
+        var header = [localize('Contract details'), localize('Ref. ID'), localize('Currency'), localize('Transaction time'), localize('Transaction'), localize('Credit/Debit'), localize('Balance'), localize('Details')];
 
         var metadata = {
             id: table_id,
@@ -32499,20 +32500,23 @@ var StatementUI = function () {
         }));
         var credit_debit_type = parseFloat(transaction.amount) >= 0 ? 'profit' : 'loss';
 
-        var $statement_row = Table.createFlexTableRow([statement_data.date, '<span ' + showTooltip(statement_data.app_id, oauth_apps[statement_data.app_id]) + '>' + statement_data.ref + '</span>', statement_data.payout, statement_data.localized_action, '', statement_data.amount, statement_data.balance, ''], columns, 'data');
+        var currency = Client.get('currency');
+
+        var $statement_row = Table.createFlexTableRow(['', '<span ' + showTooltip(statement_data.app_id, oauth_apps[statement_data.app_id]) + '>' + statement_data.ref + '</span>', currency, statement_data.date, statement_data.localized_action, statement_data.amount, statement_data.balance, ''], columns, 'data');
         $statement_row.children('.credit').addClass(credit_debit_type);
-        $statement_row.children('.date').addClass('pre');
-        $statement_row.children('.desc').html('<span>' + statement_data.desc + '</span>');
+        $statement_row.children('.transaction-time').addClass('pre');
+        $statement_row.children('.contract').html(statement_data.desc + '<br>');
+        $statement_row.children('.contract').css('width', '200px');
 
         // add processing time tooltip for withdrawal
         if (transaction.action_type === 'withdrawal') {
-            $statement_row.children('.desc').find('span').attr('data-balloon', transaction.withdrawal_details);
+            $statement_row.children('.contract').find('span').attr('data-balloon', transaction.withdrawal_details);
         }
 
         // create view button and append
         if (/^(buy|sell)$/i.test(statement_data.action_type)) {
             var $view_button = $('<button/>', { class: 'button open_contract_details', text: localize('View'), contract_id: statement_data.id });
-            $statement_row.children('.desc,.details').append($view_button);
+            $statement_row.children('.contract,.details').append($view_button);
         }
 
         return $statement_row[0]; // return DOM instead of jquery object
