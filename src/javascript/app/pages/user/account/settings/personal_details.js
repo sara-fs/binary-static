@@ -191,6 +191,7 @@ const PersonalDetails = (() => {
 
             const should_update_value = /select|text/i.test(element_key.type);
             CommonFunctions.getElementById(`row_${element_id}`).setVisibility(1);
+            CommonFunctions.getElementById('row_salutation').setVisibility(0);
             if (element_key.type === 'checkbox') {
                 element_key.checked = !!get_settings[key];
             } else if (!should_update_value) { // for all non (checkbox|select|text) elements
@@ -237,8 +238,8 @@ const PersonalDetails = (() => {
             $('#residence').replaceWith($('<label/>').append($('<strong/>', { id: 'country' })));
             $('#country').text(get_settings.country);
         }
-        if (['Mr', 'Ms'].includes(get_settings_data.salutation)){
-            CommonFunctions.getElementById('row_salutation').setVisibility(0);
+        if (!get_settings_data.salutation){
+            CommonFunctions.getElementById('row_salutation').setVisibility(1);
         }
         if (is_virtual) {
             CommonFunctions.getElementById('row_date_of_birth').setVisibility(0);
