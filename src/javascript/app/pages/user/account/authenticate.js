@@ -914,9 +914,9 @@ const Authenticate = (() => {
     };
 
     const handleComplete = (data) => {
-        const docIds = [];
+        const document_ids = [];
         Object.keys(data).forEach(key => {
-            docIds.push(data[key].id);
+            document_ids.push(data[key].id);
         });
 
         BinarySocket.send({
@@ -924,7 +924,7 @@ const Authenticate = (() => {
             category          : 'authentication',
             event             : 'poi_documents_uploaded',
             args              : {
-                documents: docIds,
+                documents: document_ids,
             },
         }).then(() => {
             onfido.tearDown();
