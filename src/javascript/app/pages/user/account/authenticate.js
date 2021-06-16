@@ -914,10 +914,7 @@ const Authenticate = (() => {
     };
 
     const handleComplete = (data) => {
-        const document_ids = [];
-        Object.keys(data).forEach(key => {
-            document_ids.push(data[key].id);
-        });
+        const document_ids = Object.keys(data).map(key => data[key].id);
 
         BinarySocket.send({
             notification_event: 1,
